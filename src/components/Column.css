@@ -1,0 +1,80 @@
+.tb-column {
+  flex-shrink: 0;
+  width: 300px;
+  background: rgba(235, 236, 240, 0.95);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 140px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.tb-column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+}
+
+.tb-column-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #172b4d;
+}
+
+.tb-column-card-count {
+  background: #dfe1e6;
+  color: #42526e;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.tb-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding: 2px;
+}
+
+.tb-cards-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tb-cards-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tb-cards-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.tb-add-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 6px;
+  color: #5e6c84;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tb-add-card:hover {
+  background: rgba(9, 30, 66, 0.08);
+  color: #172b4d;
+}
+
+.tb-add-card-icon {
+  font-size: 16px;
+  font-weight: 300;
+}

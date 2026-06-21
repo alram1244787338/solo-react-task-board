@@ -1,0 +1,75 @@
+.tb-board {
+  width: 100%;
+  min-height: 100vh;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tb-board-header {
+  margin-bottom: 24px;
+  text-align: center;
+  color: #fff;
+}
+
+.tb-board-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tb-board-subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.tb-columns-container {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  overflow-x: auto;
+  padding-bottom: 16px;
+  align-items: flex-start;
+}
+
+.tb-columns-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.tb-columns-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.tb-columns-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.tb-add-column {
+  flex-shrink: 0;
+  width: 300px;
+  min-height: 120px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  backdrop-filter: blur(4px);
+}
+
+.tb-add-column:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.tb-add-column-icon {
+  font-size: 20px;
+  font-weight: 300;
+}
