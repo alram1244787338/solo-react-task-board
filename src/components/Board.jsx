@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useBoardState } from '../contexts/BoardContext';
 import { useBoardActions } from '../hooks/useBoard';
+import { useComposition } from '../hooks/useComposition';
 import Column from './Column';
 import Modal from './Modal';
 import './Board.css';
@@ -11,9 +12,10 @@ function Board() {
   const { addColumn } = useBoardActions();
   const columns = state && Array.isArray(state.columns) ? state.columns : [];
   const cards = state && state.cards && typeof state.cards === 'object' ? state.cards : {};
+  const isEmpty = columns.length === 0;
 
   const [showAddColumn, setShowAddColumn] = useState(false);
-  const [columnTitle, setColumnTitle] = useState('');
+  const [columnTitle, bindColumnTitle, setColumnTitleDirect] = useComposition('');
   const [titleError, setTitleError] = useState('');
   const inputRef = useRef(null);
 
@@ -24,15 +26,20 @@ function Board() {
   }, [showAddColumn]);
 
   const handleOpenAddColumn = () => {
-    setColumnTitle('');
+    setColumnTitleDirect('');
     setTitleError('');
     setShowAddColumn(true);
   };
 
   const handleCloseAddColumn = () => {
     setShowAddColumn(false);
-    setColumnTitle('');
+    setColumnTitleDirect('');
     setTitleError('');
+  };
+
+  const handleColumnTitleChange = (e) => {
+    bindColumnTitle.onChange(e);
+    if (titleError) setTitleError('');
   };
 
   const handleSubmitAddColumn = (e) => {
@@ -53,12 +60,11 @@ function Board() {
         <p className="tb-board-subtitle">Trello 风格的任务管理</p>
       </header>
 
-      {columns.length === 0 ? (
+      {isEmpty ? (
         <div className="tb-empty-state">
           <div className="tb-empty-icon">📭</div>
           <div className="tb-empty-title">还没有列</div>
-          <div className="tb-empty-desc">点击右侧「+ 添加列」开始创建你的第一个看板吧</div>
-          <div className="tb-empty-arrow">➡️</div>
+          <div className="tb-empty-desc">点击下方「+ 添加列」开始创建你的第一个看板吧</div>
         </div>
       ) : (
         <div className="tb-columns-container">
@@ -75,23 +81,13 @@ function Board() {
         </div>
       )}
 
-      {columns.length > 0 && (
-        <div className="tb-add-column" onClick={handleOpenAddColumn}>
-          <span className="tb-add-column-icon">+</span>
-          <span>添加列</span>
-        </div>
-      )}
-
-      {columns.length === 0 && (
-        <div
-          className="tb-add-column"
-          style={{ alignSelf: 'center', marginTop: 20 }}
-          onClick={handleOpenAddColumn}
-        >
-          <span className="tb-add-column-icon">+</span>
-          <span>添加列</span>
-        </div>
-      )}
+      <div
+        className={`tb-add-column ${isEmpty ? 'tb-add-column-centered' : ''}`}
+        onClick={handleOpenAddColumn}
+      >
+        <span className="tb-add-column-icon">+</span>
+        <span>添加列</span>
+      </div>
 
       <Modal isOpen={showAddColumn} onClose={handleCloseAddColumn} title="添加新列">
         <form onSubmit={handleSubmitAddColumn}>
@@ -103,11 +99,10 @@ function Board() {
               ref={inputRef}
               type="text"
               className="tb-form-input"
-              value={columnTitle}
-              onChange={(e) => {
-                setColumnTitle(e.target.value);
-                if (titleError) setTitleError('');
-              }}
+              value={bindColumnTitle.value}
+              onChange={handleColumnTitleChange}
+              onCompositionStart={bindColumnTitle.onCompositionStart}
+              onCompositionEnd={bindColumnTitle.onCompositionEnd}
               placeholder="例如：待办、进行中"
             />
             {titleError && <div className="tb-form-error">{titleError}</div>}

@@ -73,3 +73,8 @@
   font-size: 20px;
   font-weight: 300;
 }
+
+.tb-add-column-centered {
+  align-self: center;
+  margin-top: 20px;
+}

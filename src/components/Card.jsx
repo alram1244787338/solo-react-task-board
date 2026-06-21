@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import Modal from './Modal';
 import Confirm from './Confirm';
 import { useBoardActions } from '../hooks/useBoard';
+import { useComposition } from '../hooks/useComposition';
 import './Card.css';
 
 function Card({ card, columnId }) {
   const { updateCard, removeCard } = useBoardActions();
   const [showEdit, setShowEdit] = useState(false);
-  const [editTitle, setEditTitle] = useState(card.title);
+  const [editTitle, bindEditTitle, setEditTitleDirect] = useComposition(card.title);
   const [editDesc, setEditDesc] = useState(card.description || '');
   const [titleError, setTitleError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -21,7 +22,7 @@ function Card({ card, columnId }) {
 
   const handleOpenEdit = (e) => {
     e.stopPropagation();
-    setEditTitle(card.title);
+    setEditTitleDirect(card.title);
     setEditDesc(card.description || '');
     setTitleError('');
     setShowEdit(true);
@@ -29,22 +30,34 @@ function Card({ card, columnId }) {
 
   const handleCloseEdit = () => {
     setShowEdit(false);
-    setEditTitle(card.title);
+    setEditTitleDirect(card.title);
     setEditDesc(card.description || '');
     setTitleError('');
   };
 
+  const handleEditTitleChange = (e) => {
+    bindEditTitle.onChange(e);
+    if (titleError) setTitleError('');
+  };
+
   const handleSubmitEdit = (e) => {
     e.preventDefault();
-    const trimmed = editTitle.trim();
-    if (!trimmed) {
+    const trimmedTitle = editTitle.trim();
+    if (!trimmedTitle) {
       setTitleError('请输入卡片标题');
       return;
     }
-    updateCard(card.id, {
-      title: trimmed,
-      description: editDesc.trim(),
-    });
+    const trimmedDesc = editDesc.trim();
+    const titleChanged = trimmedTitle !== card.title;
+    const descChanged = trimmedDesc !== (card.description || '');
+    if (!titleChanged && !descChanged) {
+      handleCloseEdit();
+      return;
+    }
+    const updates = {};
+    if (titleChanged) updates.title = trimmedTitle;
+    if (descChanged) updates.description = trimmedDesc;
+    updateCard(card.id, updates);
     handleCloseEdit();
   };
 
@@ -95,11 +108,10 @@ function Card({ card, columnId }) {
               ref={titleRef}
               type="text"
               className="tb-form-input"
-              value={editTitle}
-              onChange={(e) => {
-                setEditTitle(e.target.value);
-                if (titleError) setTitleError('');
-              }}
+              value={bindEditTitle.value}
+              onChange={handleEditTitleChange}
+              onCompositionStart={bindEditTitle.onCompositionStart}
+              onCompositionEnd={bindEditTitle.onCompositionEnd}
             />
             {titleError && <div className="tb-form-error">{titleError}</div>}
           </div>

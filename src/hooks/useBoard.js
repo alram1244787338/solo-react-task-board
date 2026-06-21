@@ -1,4 +1,5 @@
 import { useBoardDispatch } from '../contexts/BoardContext';
+import { generateId } from '../utils/id';
 
 export const initialState = {
   columns: [],
@@ -15,10 +16,6 @@ export const ActionTypes = {
   MOVE_CARD: 'MOVE_CARD',
   MOVE_COLUMN: 'MOVE_COLUMN',
 };
-
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-}
 
 export function boardReducer(state, action) {
   switch (action.type) {

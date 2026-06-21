@@ -6,6 +6,8 @@
   box-shadow: 0 1px 3px rgba(9, 30, 66, 0.1);
   transition: box-shadow 0.15s, transform 0.15s;
   border: 1px solid rgba(9, 30, 66, 0.04);
+  overflow: hidden;
+  min-width: 0;
 }
 
 .tb-card:hover {
@@ -19,6 +21,10 @@
   color: #172b4d;
   line-height: 1.4;
   word-break: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  margin: 0;
+  padding-right: 24px;
 }
 
 .tb-card-desc {
@@ -27,6 +33,7 @@
   color: #5e6c84;
   line-height: 1.5;
   word-break: break-word;
+  overflow-wrap: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;

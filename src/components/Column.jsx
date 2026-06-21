@@ -3,22 +3,25 @@ import Card from './Card';
 import Modal from './Modal';
 import Confirm from './Confirm';
 import { useBoardActions } from '../hooks/useBoard';
+import { useComposition } from '../hooks/useComposition';
 import './Column.css';
 
 function Column({ column, index, cards }) {
   const { updateColumn, removeColumn, addCard } = useBoardActions();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(column.title);
+  const [editTitle, bindEditTitle, setEditTitleDirect] = useComposition(column.title);
+  const isComposingRef = useRef(false);
   const inputRef = useRef(null);
 
   const [showAddCard, setShowAddCard] = useState(false);
-  const [cardTitle, setCardTitle] = useState('');
+  const [cardTitle, bindCardTitle, setCardTitleDirect] = useComposition('');
   const [cardDesc, setCardDesc] = useState('');
   const [cardTitleError, setCardTitleError] = useState('');
   const cardTitleRef = useRef(null);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteDisabledTip, setShowDeleteDisabledTip] = useState(false);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -34,14 +37,20 @@ function Column({ column, index, cards }) {
   }, [showAddCard]);
 
   const handleDoubleClick = () => {
-    setEditTitle(column.title);
+    setEditTitleDirect(column.title);
     setIsEditing(true);
   };
 
   const handleEditSubmit = (e) => {
     if (e) e.preventDefault();
+    if (isComposingRef.current) return;
     const trimmed = editTitle.trim();
-    if (trimmed && trimmed !== column.title) {
+    if (!trimmed) {
+      setEditTitleDirect(column.title);
+      setIsEditing(false);
+      return;
+    }
+    if (trimmed !== column.title) {
       updateColumn(column.id, trimmed);
     }
     setIsEditing(false);
@@ -56,13 +65,23 @@ function Column({ column, index, cards }) {
       e.preventDefault();
       handleEditSubmit();
     } else if (e.key === 'Escape') {
-      setEditTitle(column.title);
+      setEditTitleDirect(column.title);
       setIsEditing(false);
     }
   };
 
+  const handleEditCompositionStart = () => {
+    isComposingRef.current = true;
+    bindEditTitle.onCompositionStart();
+  };
+
+  const handleEditCompositionEnd = (e) => {
+    isComposingRef.current = false;
+    bindEditTitle.onCompositionEnd(e);
+  };
+
   const handleOpenAddCard = () => {
-    setCardTitle('');
+    setCardTitleDirect('');
     setCardDesc('');
     setCardTitleError('');
     setShowAddCard(true);
@@ -70,9 +89,14 @@ function Column({ column, index, cards }) {
 
   const handleCloseAddCard = () => {
     setShowAddCard(false);
-    setCardTitle('');
+    setCardTitleDirect('');
     setCardDesc('');
     setCardTitleError('');
+  };
+
+  const handleCardTitleChange = (e) => {
+    bindCardTitle.onChange(e);
+    if (cardTitleError) setCardTitleError('');
   };
 
   const handleSubmitAddCard = (e) => {
@@ -84,6 +108,15 @@ function Column({ column, index, cards }) {
     }
     addCard(column.id, trimmed, cardDesc.trim());
     handleCloseAddCard();
+  };
+
+  const handleDeleteColumnClick = () => {
+    if (cards.length > 0) {
+      setShowDeleteDisabledTip(true);
+      setTimeout(() => setShowDeleteDisabledTip(false), 2000);
+      return;
+    }
+    setShowDeleteConfirm(true);
   };
 
   const handleDeleteColumn = () => {
@@ -98,28 +131,29 @@ function Column({ column, index, cards }) {
     <div className="tb-column">
       <div className="tb-column-header">
         {isEditing ? (
-          <form onSubmit={handleEditSubmit} style={{ flex: 1, marginRight: 8 }}>
-            <input
-              ref={inputRef}
-              type="text"
-              className="tb-inline-input"
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              onBlur={handleEditBlur}
-              onKeyDown={handleEditKeyDown}
-            />
-          </form>
+          <div className="tb-column-title-wrap">
+            <form onSubmit={handleEditSubmit}>
+              <input
+                ref={inputRef}
+                type="text"
+                className="tb-inline-input"
+                value={bindEditTitle.value}
+                onChange={bindEditTitle.onChange}
+                onCompositionStart={handleEditCompositionStart}
+                onCompositionEnd={handleEditCompositionEnd}
+                onBlur={handleEditBlur}
+                onKeyDown={handleEditKeyDown}
+              />
+            </form>
+          </div>
         ) : (
-          <h3
-            className="tb-column-title"
-            onDoubleClick={handleDoubleClick}
-            title="双击编辑列名"
-            style={{ cursor: 'pointer' }}
-          >
-            {column.title}
-          </h3>
+          <div className="tb-column-title-wrap" onDoubleClick={handleDoubleClick}>
+            <h3 className="tb-column-title" title="双击编辑列名">
+              {column.title}
+            </h3>
+          </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="tb-column-meta">
           <span className="tb-column-card-count">{cards.length}</span>
           <div className="tb-column-actions">
             <button
@@ -130,18 +164,26 @@ function Column({ column, index, cards }) {
             >
               ✏️
             </button>
-            <button
-              className="tb-icon-btn tb-danger"
-              onClick={() => setShowDeleteConfirm(true)}
-              disabled={!isEmpty}
-              title={isEmpty ? '删除列' : '请先删除列内所有卡片'}
-              aria-label="删除列"
-            >
-              🗑️
-            </button>
+            <div className="tb-disabled-tooltip" data-tooltip="请先删除列内所有卡片">
+              <button
+                className="tb-icon-btn tb-danger"
+                onClick={handleDeleteColumnClick}
+                disabled={!isEmpty}
+                title={isEmpty ? '删除列' : ''}
+                aria-label="删除列"
+              >
+                🗑️
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {showDeleteDisabledTip && (
+        <div className="tb-delete-disabled-tip">
+          请先删除列内所有卡片
+        </div>
+      )}
 
       <div className="tb-cards-list">
         {cards.map((card) => (
@@ -164,11 +206,10 @@ function Column({ column, index, cards }) {
               ref={cardTitleRef}
               type="text"
               className="tb-form-input"
-              value={cardTitle}
-              onChange={(e) => {
-                setCardTitle(e.target.value);
-                if (cardTitleError) setCardTitleError('');
-              }}
+              value={bindCardTitle.value}
+              onChange={handleCardTitleChange}
+              onCompositionStart={bindCardTitle.onCompositionStart}
+              onCompositionEnd={bindCardTitle.onCompositionEnd}
               placeholder="输入卡片标题"
             />
             {cardTitleError && <div className="tb-form-error">{cardTitleError}</div>}

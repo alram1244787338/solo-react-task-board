@@ -1,4 +1,5 @@
 .tb-column {
+  position: relative;
   flex-shrink: 0;
   width: 300px;
   background: rgba(235, 236, 240, 0.95);
@@ -19,10 +20,26 @@
   padding: 4px 8px;
 }
 
+.tb-column-title-wrap {
+  flex: 1;
+  margin-right: 8px;
+  min-width: 0;
+}
+
 .tb-column-title {
   font-size: 15px;
   font-weight: 600;
   color: #172b4d;
+  cursor: pointer;
+  word-break: break-word;
+  margin: 0;
+}
+
+.tb-column-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .tb-column-card-count {
@@ -77,4 +94,53 @@
 .tb-add-card-icon {
   font-size: 16px;
   font-weight: 300;
+}
+
+.tb-disabled-tooltip {
+  position: relative;
+  display: inline-flex;
+}
+
+.tb-disabled-tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #172b4d;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tb-disabled-tooltip:hover::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 0px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #172b4d;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tb-delete-disabled-tip {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  background: #de350b;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 20;
+  pointer-events: none;
+  animation: tb-fadeIn 0.15s ease-out;
 }
