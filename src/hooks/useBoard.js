@@ -94,6 +94,9 @@ export function boardReducer(state, action) {
 
     case ActionTypes.UPDATE_CARD: {
       const { cardId, updates } = action.payload;
+      if (!state.cards || !Object.prototype.hasOwnProperty.call(state.cards, cardId)) {
+        return state;
+      }
       return {
         ...state,
         cards: {

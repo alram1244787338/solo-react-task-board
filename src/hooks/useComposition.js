@@ -1,39 +1,40 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { createCompositionMachine } from './compositionMachine';
 
 export function useComposition(initialValue = '') {
+  const machineRef = useRef(null);
+  if (!machineRef.current) {
+    machineRef.current = createCompositionMachine(initialValue);
+  }
+  const machine = machineRef.current;
+
   const [value, setValue] = useState(initialValue);
-  const isComposingRef = useRef(false);
-  const pendingValueRef = useRef(initialValue);
 
-  const handleChange = useCallback((e) => {
-    pendingValueRef.current = e.target.value;
-    if (!isComposingRef.current) {
-      setValue(e.target.value);
-    }
-  }, []);
-
-  const handleCompositionStart = useCallback(() => {
-    isComposingRef.current = true;
-  }, []);
-
-  const handleCompositionEnd = useCallback((e) => {
-    isComposingRef.current = false;
-    const finalValue = e.target.value;
-    pendingValueRef.current = finalValue;
-    setValue(finalValue);
-  }, []);
-
-  const setValueDirect = useCallback((v) => {
-    pendingValueRef.current = v;
-    setValue(v);
-  }, []);
+  useEffect(() => {
+    const unsub = machine.subscribe((next) => setValue(next));
+    return unsub;
+  }, [machine]);
 
   const bindInput = {
     value,
-    onChange: handleChange,
-    onCompositionStart: handleCompositionStart,
-    onCompositionEnd: handleCompositionEnd,
+    onChange: useCallback(
+      (e) => machine.onChange(e.target.value),
+      [machine]
+    ),
+    onCompositionStart: useCallback(
+      () => machine.onCompositionStart(),
+      [machine]
+    ),
+    onCompositionEnd: useCallback(
+      (e) => machine.onCompositionEnd(e.target.value),
+      [machine]
+    ),
   };
+
+  const setValueDirect = useCallback(
+    (v) => machine.setValue(v),
+    [machine]
+  );
 
   return [value, bindInput, setValueDirect];
 }

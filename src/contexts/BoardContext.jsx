@@ -1,27 +1,23 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { boardReducer, initialState } from '../hooks/useBoard';
+import { STORAGE_KEY, restoreStateFromStorage } from './boardStorage';
 
 const BoardContext = createContext(null);
 const BoardDispatchContext = createContext(null);
 
 export function BoardProvider({ children }) {
-  const [state, dispatch] = useReducer(boardReducer, initialState, (init) => {
-    try {
-      const saved = localStorage.getItem('task-board-state');
-      if (!saved) return init;
-      const parsed = JSON.parse(saved);
-      return {
-        columns: Array.isArray(parsed.columns) ? parsed.columns : [],
-        cards: parsed.cards && typeof parsed.cards === 'object' ? parsed.cards : {},
-      };
-    } catch {
-      return init;
-    }
-  });
+  const [state, dispatch] = useReducer(
+    boardReducer,
+    initialState,
+    (init) =>
+      restoreStateFromStorage(init, (key) =>
+        typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null
+      )
+  );
 
   useEffect(() => {
     try {
-      localStorage.setItem('task-board-state', JSON.stringify(state));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
     }
   }, [state]);
