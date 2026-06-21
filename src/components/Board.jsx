@@ -1,19 +1,50 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useBoardState } from '../contexts/BoardContext';
+import { useBoardActions } from '../hooks/useBoard';
 import Column from './Column';
+import Modal from './Modal';
 import './Board.css';
-
-const DEFAULT_COLUMNS = [
-  { title: '待办', placeholder: true },
-  { title: '进行中', placeholder: true },
-  { title: '已完成', placeholder: true },
-];
+import './Confirm.css';
 
 function Board() {
   const state = useBoardState();
+  const { addColumn } = useBoardActions();
   const columns = state && Array.isArray(state.columns) ? state.columns : [];
   const cards = state && state.cards && typeof state.cards === 'object' ? state.cards : {};
-  const displayColumns = columns.length > 0 ? columns : DEFAULT_COLUMNS;
+
+  const [showAddColumn, setShowAddColumn] = useState(false);
+  const [columnTitle, setColumnTitle] = useState('');
+  const [titleError, setTitleError] = useState('');
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (showAddColumn && inputRef.current) {
+      setTimeout(() => inputRef.current.focus(), 100);
+    }
+  }, [showAddColumn]);
+
+  const handleOpenAddColumn = () => {
+    setColumnTitle('');
+    setTitleError('');
+    setShowAddColumn(true);
+  };
+
+  const handleCloseAddColumn = () => {
+    setShowAddColumn(false);
+    setColumnTitle('');
+    setTitleError('');
+  };
+
+  const handleSubmitAddColumn = (e) => {
+    e.preventDefault();
+    const trimmed = columnTitle.trim();
+    if (!trimmed) {
+      setTitleError('请输入列名');
+      return;
+    }
+    addColumn(trimmed);
+    handleCloseAddColumn();
+  };
 
   return (
     <div className="tb-board">
@@ -21,24 +52,76 @@ function Board() {
         <h1 className="tb-board-title">📋 任务看板</h1>
         <p className="tb-board-subtitle">Trello 风格的任务管理</p>
       </header>
-      <div className="tb-columns-container">
-        {displayColumns.map((col, index) => (
-          <Column
-            key={col.id || `placeholder-${index}`}
-            column={col}
-            index={index}
-            cards={
-              col.cardIds
+
+      {columns.length === 0 ? (
+        <div className="tb-empty-state">
+          <div className="tb-empty-icon">📭</div>
+          <div className="tb-empty-title">还没有列</div>
+          <div className="tb-empty-desc">点击右侧「+ 添加列」开始创建你的第一个看板吧</div>
+          <div className="tb-empty-arrow">➡️</div>
+        </div>
+      ) : (
+        <div className="tb-columns-container">
+          {columns.map((col, index) => (
+            <Column
+              key={col.id}
+              column={col}
+              index={index}
+              cards={col.cardIds
                 ? col.cardIds.map((id) => cards[id]).filter(Boolean)
-                : []
-            }
-          />
-        ))}
-        <div className="tb-add-column">
+                : []}
+            />
+          ))}
+        </div>
+      )}
+
+      {columns.length > 0 && (
+        <div className="tb-add-column" onClick={handleOpenAddColumn}>
           <span className="tb-add-column-icon">+</span>
           <span>添加列</span>
         </div>
-      </div>
+      )}
+
+      {columns.length === 0 && (
+        <div
+          className="tb-add-column"
+          style={{ alignSelf: 'center', marginTop: 20 }}
+          onClick={handleOpenAddColumn}
+        >
+          <span className="tb-add-column-icon">+</span>
+          <span>添加列</span>
+        </div>
+      )}
+
+      <Modal isOpen={showAddColumn} onClose={handleCloseAddColumn} title="添加新列">
+        <form onSubmit={handleSubmitAddColumn}>
+          <div className="tb-form-group">
+            <label className="tb-form-label">
+              列名<span className="tb-required">*</span>
+            </label>
+            <input
+              ref={inputRef}
+              type="text"
+              className="tb-form-input"
+              value={columnTitle}
+              onChange={(e) => {
+                setColumnTitle(e.target.value);
+                if (titleError) setTitleError('');
+              }}
+              placeholder="例如：待办、进行中"
+            />
+            {titleError && <div className="tb-form-error">{titleError}</div>}
+          </div>
+          <div className="tb-form-actions">
+            <button type="button" className="tb-btn tb-btn-default" onClick={handleCloseAddColumn}>
+              取消
+            </button>
+            <button type="submit" className="tb-btn tb-btn-primary">
+              创建
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
